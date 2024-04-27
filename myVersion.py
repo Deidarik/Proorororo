@@ -28,7 +28,6 @@ FILE_FILTERS = [
 
 file_contents="" #строка, куда считывается текст
 real_filename="er.png"
-sign=False
 basedir = os.path.dirname(__file__) #механизм, по которому открытие файлов
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -45,28 +44,28 @@ class MainWindow(QMainWindow):
         button_action.setStatusTip("To get your file")
         button_action.triggered.connect(self.onMyToolBarButton1Click)
         button_action.setShortcut(QKeySequence("Ctrl+p"))
-        button_action.setCheckable(True)
+        button_action.setCheckable(False)
 
         toolbar.addAction(button_action)
         button_action2 = QAction(QIcon(os.path.join(basedir, "disk.png")),"To save your file",self,)
         button_action2.setStatusTip("To save your file")
         button_action2.triggered.connect(self.onMyToolBarButton2Click)
         button_action2.setShortcut(QKeySequence("Ctrl+l"))
-        button_action2.setCheckable(True)
+        button_action2.setCheckable(False)
         toolbar.addAction(button_action2)
         toolbar.addSeparator()
         button_action3 = QAction(QIcon(os.path.join(basedir, "folder.png")),"To choose your dir",self,)
         button_action3.setStatusTip("To choose your dir")
         button_action3.triggered.connect(self.onMyToolBarButton3Click)
         button_action3.setShortcut(QKeySequence("Ctrl+m"))
-        button_action3.setCheckable(True)
+        button_action3.setCheckable(False)
         toolbar.addAction(button_action3)
         toolbar.addSeparator()
         button_action4 = QAction(QIcon(os.path.join(basedir, "bug.png")),"extraordinary",self,)
         button_action4.setStatusTip("extraordinary")
         button_action4.triggered.connect(self.onMyToolBarButton1Click)
         button_action4.setShortcut(QKeySequence("Ctrl+a"))
-        button_action4.setCheckable(True)
+        button_action4.setCheckable(False)
         toolbar.addAction(button_action4)
         menu = self.menuBar()
         file_menu = menu.addMenu("File")
@@ -80,7 +79,6 @@ class MainWindow(QMainWindow):
         file_submenu3.addAction(button_action3)
 
     def onMyToolBarButton1Click(self, s):
-        s=False
         caption = ""  # Empty uses default caption.
         initial_dir = ""  # Empty uses current folder.
         initial_filter = FILE_FILTERS[3]  # Select one from the list.
@@ -102,19 +100,15 @@ class MainWindow(QMainWindow):
             with codecs.open(filename, "rb","utf-8") as f:
                 file_contents = f.read()
                 print(file_contents)
-        if(selected_filter==FILE_FILTERS[0]):
-            if filename:
-             filename=filename.split('/')
-             real_filename=filename[len(filename)-1]
-             #widget.setPixmap(QPixmap(os.path.join(basedir,real_filename)))
-             #widget.setScaledContents(True)
-             #self.setCentralWidget(widget)
-             self.widget.setPixmap(QPixmap(os.path.join(basedir,real_filename)))
-             self.widget.setScaledContents(True)
+        #if(selected_filter==FILE_FILTERS[0]):
+           # if filename:
+           #  filename=filename.split('/')
+            # real_filename=filename[len(filename)-1]
+            # self.label.setPixmap(QPixmap(os.path.join(basedir,real_filename)))
+          #   self.label.setScaledContents(True)
 
 
     def onMyToolBarButton2Click(self,s):
-        s=False
         caption = ""  # Empty uses default caption.
         initial_dir = ""  # Empty uses current folder.
         initial_filter = FILE_FILTERS[2]  # Select one from the list.
@@ -148,7 +142,6 @@ class MainWindow(QMainWindow):
                     f.write(file_contents)
         # end::get_save_filename[]
     def onMyToolBarButton3Click(self, s):
-        s=False
         caption = ""  # Empty uses default caption.
         initial_dir = ""  # Empty uses current folder.
         folder_path = QFileDialog.getExistingDirectory(
