@@ -34,7 +34,7 @@ FILE_FILTERS = [
     "Music (*.mp3)"
 ]
 
-file_contents="" #строка, куда считывается текст
+file_contents=""#строка, куда считывается текст
 real_filename="er.png"
 basedir = os.path.dirname(__file__) #механизм, по которому открытие файлов
 
@@ -112,7 +112,8 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(widget)
 
 
-    def onMyToolBarButton1Click(self, s):
+    def onMyToolBarButton1Click(self):
+        global file_contents
         caption = ""  # Empty uses default caption.
         initial_dir = ""  # Empty uses current folder.
         initial_filter = FILE_FILTERS[3]  # Select one from the list.
@@ -152,6 +153,7 @@ class MainWindow(QMainWindow):
 
 
     def onMyToolBarButton2Click(self):
+        global file_contents
         caption = ""  # Empty uses default caption.
         initial_dir = ""  # Empty uses current folder.
         initial_filter = FILE_FILTERS[2]  # Select one from the list.
@@ -181,7 +183,7 @@ class MainWindow(QMainWindow):
                 write_confirmed = True
 
             if write_confirmed:
-                with open(filename, "w") as f:
+                with codecs.open(filename, "w","utf-8") as f:
                     f.write(file_contents)
         # end::get_save_filename[]
     def onMyToolBarButton3Click(self):
