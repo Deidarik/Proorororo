@@ -12,8 +12,12 @@ from PyQt6.QtWidgets import (
     QMainWindow,
     QToolBar,
     QFileDialog,
-    QLabel
+    QHBoxLayout,
+    QPushButton,
+    QVBoxLayout,
+    QWidget
 )
+import playsound
 import matplotlib
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
@@ -24,6 +28,7 @@ FILE_FILTERS = [
     "Text files (*.txt)",
     "Comma Separated Values (*.csv)",
     "All files (*)",
+    "Music (*.mp3)"
 ]
 
 file_contents="" #строка, куда считывается текст
@@ -45,7 +50,6 @@ class MainWindow(QMainWindow):
         button_action.triggered.connect(self.onMyToolBarButton1Click)
         button_action.setShortcut(QKeySequence("Ctrl+p"))
         button_action.setCheckable(False)
-
         toolbar.addAction(button_action)
         button_action2 = QAction(QIcon(os.path.join(basedir, "disk.png")),"To save your file",self,)
         button_action2.setStatusTip("To save your file")
@@ -67,6 +71,13 @@ class MainWindow(QMainWindow):
         button_action4.setShortcut(QKeySequence("Ctrl+a"))
         button_action4.setCheckable(False)
         toolbar.addAction(button_action4)
+        toolbar.addSeparator()
+        button_action5 = QAction(QIcon(os.path.join(basedir, "music.png")),"extraordinary",self,)
+        button_action5.setStatusTip("kaiff")
+        button_action5.triggered.connect(self.onMyToolBarButton1Click)
+        button_action5.setShortcut(QKeySequence("Ctrl+w"))
+        button_action5.setCheckable(False)
+        toolbar.addAction(button_action5)
         menu = self.menuBar()
         file_menu = menu.addMenu("File")
         file_menu2 = menu.addMenu("Folder")
@@ -77,6 +88,19 @@ class MainWindow(QMainWindow):
         file_submenu2.addAction(button_action2)
         file_submenu3=file_menu2.addMenu("Choose repos")
         file_submenu3.addAction(button_action3)
+        pagelayout=QVBoxLayout()
+        layout = QHBoxLayout()
+        btn=QPushButton("Course")
+        btn.pressed.connect(self.activate_tab_1)
+        layout.addWidget(btn)
+        btn2=QPushButton("Your own")
+        btn2.pressed.connect(self.activate_tab_2)
+        layout.addWidget(btn2)
+        pagelayout.addLayout(layout)
+        widget = QWidget()
+        widget.setLayout(pagelayout)
+        self.setCentralWidget(widget)
+
 
     def onMyToolBarButton1Click(self, s):
         caption = ""  # Empty uses default caption.
@@ -95,11 +119,16 @@ class MainWindow(QMainWindow):
         )
         print("Result:", filename, selected_filter)
         # tag::get_filename[]
-        if(selected_filter!=FILE_FILTERS[0]):
+        if(selected_filter!=FILE_FILTERS[0] and selected_filter!=FILE_FILTERS[4]):
          if filename:
             with codecs.open(filename, "rb","utf-8") as f:
                 file_contents = f.read()
                 print(file_contents)
+        if(selected_filter==FILE_FILTERS[4]):
+           if filename:
+             filename=filename.split('/')
+             real_filename=filename[len(filename)-1] 
+             playsound.playsound(real_filename)
         #if(selected_filter==FILE_FILTERS[0]):
            # if filename:
            #  filename=filename.split('/')
@@ -108,7 +137,7 @@ class MainWindow(QMainWindow):
           #   self.label.setScaledContents(True)
 
 
-    def onMyToolBarButton2Click(self,s):
+    def onMyToolBarButton2Click(self):
         caption = ""  # Empty uses default caption.
         initial_dir = ""  # Empty uses current folder.
         initial_filter = FILE_FILTERS[2]  # Select one from the list.
@@ -141,7 +170,7 @@ class MainWindow(QMainWindow):
                 with open(filename, "w") as f:
                     f.write(file_contents)
         # end::get_save_filename[]
-    def onMyToolBarButton3Click(self, s):
+    def onMyToolBarButton3Click(self):
         caption = ""  # Empty uses default caption.
         initial_dir = ""  # Empty uses current folder.
         folder_path = QFileDialog.getExistingDirectory(
@@ -152,8 +181,10 @@ class MainWindow(QMainWindow):
         print("Result:", folder_path)
 
         
-        
-
+    def activate_tab_1(self):
+        print('upi')
+    def activate_tab_2(self):
+        print('api')
 app = QApplication(sys.argv)
 app.setStyle('Fusion')
 window = MainWindow()
