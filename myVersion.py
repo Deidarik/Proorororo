@@ -3,6 +3,7 @@ import os
 import random
 import time
 import codecs
+import math
 from PyQt6.QtCore import Qt,QSize
 from PyQt6.QtGui import QAction, QIcon,QKeySequence,QPixmap
 
@@ -18,6 +19,8 @@ from PyQt6.QtWidgets import (
     QWidget
 )
 import playsound
+from threading import Thread
+from mutagen.mp3 import MP3
 import matplotlib
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
@@ -34,6 +37,13 @@ FILE_FILTERS = [
 file_contents="" #строка, куда считывается текст
 real_filename="er.png"
 basedir = os.path.dirname(__file__) #механизм, по которому открытие файлов
+
+def playy(real_filename,f):
+    playsound.playsound(real_filename)
+    while(f>0):
+        time.sleep(1)
+        f-=1
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -126,9 +136,13 @@ class MainWindow(QMainWindow):
                 print(file_contents)
         if(selected_filter==FILE_FILTERS[4]):
            if filename:
-             filename=filename.split('/')
-             real_filename=filename[len(filename)-1] 
-             playsound.playsound(real_filename)
+             filename2=filename.split('/')
+             real_filename=filename2[len(filename2)-1]
+             f = MP3(real_filename)
+             f=f.info.length
+             f-=1
+             f=math.floor(f)
+             P = Thread(name="playsound",target=playy,args=(real_filename,f)).start()  
         #if(selected_filter==FILE_FILTERS[0]):
            # if filename:
            #  filename=filename.split('/')
