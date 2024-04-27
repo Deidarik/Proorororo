@@ -5,9 +5,11 @@ import time
 import codecs
 import math
 import numpy as np
+import pynput
+from pynput.keyboard import Key, Listener
 from PyQt6.QtCore import Qt,QSize
 from PyQt6.QtGui import QAction, QIcon,QKeySequence,QPixmap
-
+from enum import Enum
 from PyQt6.QtWidgets import (
     QApplication,
     QMessageBox,
@@ -18,7 +20,8 @@ from PyQt6.QtWidgets import (
     QPushButton,
     QVBoxLayout,
     QWidget,
-    QLabel
+    QLabel,
+    QLineEdit
 )
 import playsound
 from threading import Thread
@@ -40,6 +43,8 @@ file_contents=""#строка, куда считывается текст
 real_filename="er.png"
 basedir = os.path.dirname(__file__) #механизм, по которому открытие файлов
 percentage=[0.0,0.0,0.0]
+Text_variants=Enum('Lesson',['First','Second','Third','No','Unique'])
+state=Text_variants.No
 #типо курсы, индекс массива+1=соответсвующий урок
 course=np.array([ 
     ["аооа ааоо аааооо аоаоаоа влвлв лвлв ывы лдлд ывлд ывлддлвы"],
@@ -47,7 +52,7 @@ course=np.array([
     ["чувак, ты так хорош, что я в твою честь назову страну, ей-богу"]
 ],
 dtype=(np.unicode_, 16),order='C')
-
+mistakes=0
 def playy(real_filename,f):
     playsound.playsound(real_filename)
     while(f>0):
@@ -79,20 +84,25 @@ class AnotherWindow1(QWidget):
         global course
         global percentage
         global file_contents
+        global Text_variants
+        global state
+        state=Text_variants.First
         self.w = AnotherWindow2()
         if self.w.isVisible():
             self.w.hide()
-
         else:
             self.w.show()
+
       def activate_lesson_second(self):
         global course
         global percentage
         global file_contents
+        global Text_variants
+        global state
+        state=Text_variants.Second
         self.w = AnotherWindow2()
         if self.w.isVisible():
             self.w.hide()
-
         else:
             self.w.show()
       def activate_lesson_third(self):
@@ -100,19 +110,75 @@ class AnotherWindow1(QWidget):
         global percentage
         global file_contents
         self.w = AnotherWindow2()
+        global Text_variants
+        global state
+        state=Text_variants.Third
+        self.w.setInputMethodHints
         if self.w.isVisible():
             self.w.hide()
-
         else:
             self.w.show()
+keys = []
+  
+def on_press(key):
+    keys.append(key)
+    try:
+        print('alphanumeric key {0} pressed'.format(key.char))
+    except AttributeError:
+        print('special key {0} pressed'.format(key))
+
+def on_release(key):
+                     
+    print('{0} released'.format(key))
+    if key == Key.esc:
+        # Stop listener
+        return False
 class AnotherWindow2(QWidget):
       def __init__(self):
         super().__init__()
+        global state
+        global file_contents
+        global course
+        global mistakes
+        global keys
         self.setWindowTitle("Tempts")  # <2>
         self.setMinimumWidth(400)
         self.setMinimumHeight(400)
         self.setMaximumWidth(1000)
         self.setMaximumHeight(1000)
+        pagelayout=QVBoxLayout()
+        if(state.value==5):
+            mes=QMessageBox.information(
+            self,
+            "Warning",
+            "GET U'R FILE via ctrl+p",
+            buttons=QMessageBox.StandardButton.Yes
+            | QMessageBox.StandardButton.No,
+            defaultButton=QMessageBox.StandardButton.Yes
+            )
+        else:
+            file_contents=course[state.value-1][0]
+        input_for_prepared=QLineEdit(file_contents)
+        pagelayout.addWidget(input_for_prepared)
+        input_for_unprepared=QLineEdit()
+        pagelayout.addWidget(input_for_unprepared)
+        self.setLayout(pagelayout)
+        index=0
+        bound=len(input_for_prepared.text())
+        while(len(input_for_unprepared.text())!=bound):
+            #with Listener(on_press = on_press,
+             # on_release = on_release) as listener:
+                  #   listener.join()
+            tmp_str=input_for_prepared.text()
+            str_preparation="\033[0;37;40m{tmp_str[0:index]}"
+            str_preparation+="\033[1;33;40m {tmp_str[index]}"
+            str_preparation+="\033[0;37;40m{tmp_str[index:bound]}"
+            input_for_prepared.setText(str_preparation)
+
+            if(keys[index]!=tmp_str[index] and keys[index]!='a'):
+                mistakes+=1
+            
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -275,6 +341,9 @@ class MainWindow(QMainWindow):
         else:
             self.w.show()
     def activate_tab_2(self): #если он хочет свое загрузить
+        global Text_variants
+        global state
+        state=Text_variants.Unique
         self.w = AnotherWindow2()
         if self.w.isVisible():
             self.w.hide()
