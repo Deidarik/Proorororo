@@ -4,6 +4,7 @@ import random
 import time
 import codecs
 import math
+import numpy as np
 from PyQt6.QtCore import Qt,QSize
 from PyQt6.QtGui import QAction, QIcon,QKeySequence,QPixmap
 
@@ -16,7 +17,8 @@ from PyQt6.QtWidgets import (
     QHBoxLayout,
     QPushButton,
     QVBoxLayout,
-    QWidget
+    QWidget,
+    QLabel
 )
 import playsound
 from threading import Thread
@@ -37,6 +39,14 @@ FILE_FILTERS = [
 file_contents=""#строка, куда считывается текст
 real_filename="er.png"
 basedir = os.path.dirname(__file__) #механизм, по которому открытие файлов
+percentage=[0.0,0.0,0.0]
+#типо курсы, индекс массива+1=соответсвующий урок
+course=np.array([ 
+    ["аооа ааоо аааооо аоаоаоа влвлв лвлв ывы лдлд ывлд ывлддлвы"],
+    ["фыва олдж фыва олдж фждылво фывждлоа фыжд ждфы пруфыыыыыыы"],
+    ["чувак, ты так хорош, что я в твою честь назову страну, ей-богу"]
+],
+dtype=(np.unicode_, 16),order='C')
 
 def playy(real_filename,f):
     playsound.playsound(real_filename)
@@ -44,6 +54,65 @@ def playy(real_filename,f):
         time.sleep(1)
         f-=1
 
+class AnotherWindow1(QWidget):
+      global percentage
+      def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Another Window1")  # <2>
+        self.setMinimumWidth(400)
+        self.setMinimumHeight(400)
+        self.setMaximumWidth(1000)
+        self.setMaximumHeight(1000)
+        pagelayout=QVBoxLayout()
+        btn=QPushButton("Lesson_first "+str(percentage[0])+" %")
+        btn.pressed.connect(self.activate_lesson_first)
+        pagelayout.addWidget(btn)
+        btn2=QPushButton("Lesson_first "+str(percentage[1])+" %")
+        btn2.pressed.connect(self.activate_lesson_second)
+        pagelayout.addWidget(btn2)
+        btn3=QPushButton("Lesson_third "+str(percentage[2])+" %")
+        btn3.pressed.connect(self.activate_lesson_third)
+        pagelayout.addWidget(btn3)
+        self.setLayout(pagelayout)
+
+      def activate_lesson_first(self):
+        global course
+        global percentage
+        global file_contents
+        self.w = AnotherWindow2()
+        if self.w.isVisible():
+            self.w.hide()
+
+        else:
+            self.w.show()
+      def activate_lesson_second(self):
+        global course
+        global percentage
+        global file_contents
+        self.w = AnotherWindow2()
+        if self.w.isVisible():
+            self.w.hide()
+
+        else:
+            self.w.show()
+      def activate_lesson_third(self):
+        global course
+        global percentage
+        global file_contents
+        self.w = AnotherWindow2()
+        if self.w.isVisible():
+            self.w.hide()
+
+        else:
+            self.w.show()
+class AnotherWindow2(QWidget):
+      def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Tempts")  # <2>
+        self.setMinimumWidth(400)
+        self.setMinimumHeight(400)
+        self.setMaximumWidth(1000)
+        self.setMaximumHeight(1000)
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -110,6 +179,7 @@ class MainWindow(QMainWindow):
         widget = QWidget()
         widget.setLayout(pagelayout)
         self.setCentralWidget(widget)
+
 
 
     def onMyToolBarButton1Click(self):
@@ -197,10 +267,20 @@ class MainWindow(QMainWindow):
         print("Result:", folder_path)
 
         
-    def activate_tab_1(self):
-        print('upi')
-    def activate_tab_2(self):
-        print('api')
+    def activate_tab_1(self): #если ему нужны уроки
+        self.w = AnotherWindow1()
+        if self.w.isVisible():
+            self.w.hide()
+
+        else:
+            self.w.show()
+    def activate_tab_2(self): #если он хочет свое загрузить
+        self.w = AnotherWindow2()
+        if self.w.isVisible():
+            self.w.hide()
+
+        else:
+            self.w.show()
 app = QApplication(sys.argv)
 app.setStyle('Fusion')
 window = MainWindow()
