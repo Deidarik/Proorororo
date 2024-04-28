@@ -28,8 +28,12 @@ from threading import Thread
 from mutagen.mp3 import MP3
 import matplotlib
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
+from matplotlib.backends.backend_qtagg import (
+  NavigationToolbar2QT as NavigationToolbar,
+)
 from matplotlib.figure import Figure
 matplotlib.use("QtAgg")
+
 #для типов открытых файлов
 FILE_FILTERS = [
     "Portable Network Graphics files (*.png)",
@@ -62,7 +66,10 @@ size=0
 symb_per_min=[]
 words_per_min=[]
 initial_time=0
+n_words=0
+n_symb=0
 elapsed_timer_per_iter=0
+keys = []
 def playy(real_filename,f):
     playsound.playsound(real_filename)
     while(f>0):
@@ -70,7 +77,7 @@ def playy(real_filename,f):
         f-=1
 
 class AnotherWindow1(QWidget):
-      global percentage
+      global course_percentagepercentage
       def __init__(self):
         super().__init__()
         self.setWindowTitle("Another Window1")  # <2>
@@ -79,13 +86,13 @@ class AnotherWindow1(QWidget):
         self.setMaximumWidth(1000)
         self.setMaximumHeight(1000)
         pagelayout=QVBoxLayout()
-        btn=QPushButton("Lesson_first "+str(percentage[0])+" %")
+        btn=QPushButton("Lesson_first "+str(course_percentage[0])+" %")
         btn.pressed.connect(self.activate_lesson_first)
         pagelayout.addWidget(btn)
-        btn2=QPushButton("Lesson_first "+str(percentage[1])+" %")
+        btn2=QPushButton("Lesson_first "+str(course_percentage[1])+" %")
         btn2.pressed.connect(self.activate_lesson_second)
         pagelayout.addWidget(btn2)
-        btn3=QPushButton("Lesson_third "+str(percentage[2])+" %")
+        btn3=QPushButton("Lesson_third "+str(course_percentage[2])+" %")
         btn3.pressed.connect(self.activate_lesson_third)
         pagelayout.addWidget(btn3)
         self.setLayout(pagelayout)
@@ -128,7 +135,6 @@ class AnotherWindow1(QWidget):
             self.w.hide()
         else:
             self.w.show()
-keys = []
 class AnotherWindow2(QWidget):
       def __init__(self):
         super().__init__()
@@ -214,10 +220,12 @@ class AnotherWindow2(QWidget):
           global state
           global Text_variants
           global symb_per_min
+          global n_words
+          global n_symb
           tmp_str=self.input_for_prepared.toPlainText().split()
           tmp_words=""
-          tmp_words=tmp_words.join(keys).split()
           n_word=0
+          tmp_words=tmp_words.join(keys).split()
           for i in range(0,len( tmp_str)):
               for j in range(0,len(tmp_str)):
                   if(tmp_words[i]==tmp_str[j]):
@@ -243,8 +251,45 @@ class AnotherWindow2(QWidget):
               custom_percentage.append((n_word/len(tmp_words)*100))
           else:
               course_percentage[state.value-1]=(n_word/len(tmp_words)*100)
+          n_words=len(words_per_min)
+          n_symb=len(symb_per_min)
+          self.g = AnotherWindow3()
+          if self.g.isVisible():
+             self.g.hide()
+          else:
+            self.g.show()
+          self.deleteLater()
           
             
+class MplCanvas(FigureCanvasQTAgg):
+  def __init__(self, parent=None, width=5, height=4, dpi=100):
+   fig = Figure(figsize=(width, height), dpi=dpi)
+   self.axes = fig.add_subplot(111)
+   super().__init__(fig)
+
+class AnotherWindow3(QWidget):
+   def __init__(self):
+        super().__init__()
+        global words_per_min
+        global symb_per_min
+        global n_words
+        global n_symb
+        sc = MplCanvas(self, width=5, height=4, dpi=100)
+        sc.axes.plot(words_per_min, np.arange(0, n_words, 1))
+        sc2 = MplCanvas(self, width=5, height=4, dpi=100)
+        sc2.axes.plot(symb_per_min, np.arange(0, n_symb, 1))
+  # Create toolbar, passing canvas as first parameter, parent(self, the MainWindow) as second.
+        toolbar = NavigationToolbar(sc,sc2, self)
+        layout = QVBoxLayout()
+        layout.addWidget(toolbar)
+        layout.addWidget(sc)
+        layout.addWidget(sc2)
+  # Create a placeholder widget to hold our toolbar and canvas.
+        widget = QWidget()
+        widget.setLayout(layout)
+        self.setCentralWidget(widget)
+        self.show()
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -308,6 +353,8 @@ class MainWindow(QMainWindow):
         btn2.pressed.connect(self.activate_tab_2)
         layout.addWidget(btn2)
         pagelayout.addLayout(layout)
+        btn3=QPushButton("Get stats")
+        btn3.pressed.connect(self.activate_tab_3)
         widget = QWidget()
         widget.setLayout(pagelayout)
         self.setCentralWidget(widget)
@@ -398,6 +445,9 @@ class MainWindow(QMainWindow):
 
         else:
             self.w.show()
+
+    def activate_tab_3(self):
+       
 app = QApplication(sys.argv)
 app.setStyle('Fusion')
 window = MainWindow()
