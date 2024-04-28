@@ -70,8 +70,7 @@ n_words=0
 n_symb=0
 elapsed_timer_per_iter=0
 keys = []
-wtime=[]
-stime=[]
+tim=0.0
 def playy(real_filename,f):
     playsound.playsound(real_filename)
     while(f>0):
@@ -192,6 +191,7 @@ class AnotherWindow2(QWidget):
           fin_str=self.input_for_prepared.toPlainText()
           tmp_str=self.input_for_unprepared.toPlainText()
           elapsed_timer_per_iter=time.time()-initial_time-elapsed_timer_per_iter
+          elapsed_timer_per_iter/=10
           bound=len(tmp_str)
           if(bound!=0):
            keys.append(tmp_str[bound-1])
@@ -229,8 +229,7 @@ class AnotherWindow2(QWidget):
           global symb_per_min
           global n_words
           global n_symb
-          global wtime
-          global stime
+          global tim
           tmp_str=self.input_for_prepared.toPlainText().split()
           tmp_words=""
           n_word=0
@@ -254,7 +253,6 @@ class AnotherWindow2(QWidget):
               fef=0
               for f in range(j_index,j_index+k):
                   fef+=symb_per_min[f]
-              wtime.append(fef)
               words_per_min.append(60/fef)
               j_index=k
           if(state==Text_variants.Unique):
@@ -262,7 +260,7 @@ class AnotherWindow2(QWidget):
           else:
               course_percentage[state.value-1]=(n_word/len(tmp_words)*100)
           for i in range(0,len(symb_per_min)):
-             stime.append(symb_per_min[i])
+             tim+=symb_per_min[i]
              symb_per_min[i]=60/symb_per_min[i]
           n_words=len(words_per_min)
           n_symb=len(symb_per_min)
@@ -270,7 +268,7 @@ class AnotherWindow2(QWidget):
           
             
 class MplCanvas(FigureCanvasQTAgg):
-  def __init__(self, parent=None, width=8, height=8, dpi=100):
+  def __init__(self, parent=None, width=5, height=5, dpi=100):
    fig = Figure(figsize=(width, height), dpi=dpi)
    self.axes = fig.add_subplot(111)
    super().__init__(fig)
@@ -282,20 +280,19 @@ class AnotherWindow3(QWidget):
         global symb_per_min
         global n_words
         global n_symb
-        sc = MplCanvas(self, width= 8, height=8, dpi=100)
-        sc.axes.plot(np.arange(0, n_words, 1), words_per_min)
+        global tim
+        sc = MplCanvas(self, width= 5, height=5, dpi=100)
+        sc.axes.plot(np.linspace(0,tim,n_words), words_per_min)
         #legend1= sc.figure.legend("Words per minute", 1,1)
-        sc.axes.set_xlabel("Time in sec")
+        sc.axes.set_xlabel("Time in sec",loc='left',va="baseline")
         sc.axes.set_ylabel("Words per minute")
-        sc2 = MplCanvas(self, width=8, height=8, dpi=100)
-        sc2.axes.plot(np.arange(0, n_symb, 1), symb_per_min)
-        sc2.axes.set_xlabel("Time in sec")
+        sc2 = MplCanvas(self, width=5, height=5, dpi=100)
+        sc2.axes.plot(np.linspace(0,tim,n_symb), symb_per_min)
+        sc2.axes.set_xlabel("Time in sec",loc='left',va="baseline")
         sc2.axes.set_ylabel("Symbols per minute")
         #legend2=sc2.figure.legend("Symbols per minute")
   # Create toolbar, passing canvas as first parameter, parent(self, the MainWindow) as second.
-        toolbar = NavigationToolbar(sc,sc2, self)
         layout = QVBoxLayout()
-        layout.addWidget(toolbar)
         layout.addWidget(sc)
         layout.addWidget(sc2)
   # Create a placeholder widget to hold our toolbar and canvas.
