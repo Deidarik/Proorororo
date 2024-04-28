@@ -53,6 +53,8 @@ course=np.array([
 ],
 dtype=(np.unicode_, 16),order='C')
 mistakes=0
+index=0
+jndex=0
 def playy(real_filename,f):
     playsound.playsound(real_filename)
     while(f>0):
@@ -119,7 +121,26 @@ class AnotherWindow1(QWidget):
         else:
             self.w.show()
 keys = []
-  
+qrc = """
+ QLineEdit{
+    background-color: #18181d;
+    color: red;
+    border-radius: 20%;
+    height: 2.6em;
+
+    font-weight: bold;
+    font-family: 'Times New Roman';
+ }
+
+ QLineEdit:hover{
+    background-color: #25252d;
+ }
+
+ QLineEdit:focus{
+    border: 2px solid #13c386; 
+    background-color: #25252d;
+ }
+"""
 def on_press(key):
     keys.append(key)
     try:
@@ -158,25 +179,34 @@ class AnotherWindow2(QWidget):
             )
         else:
             file_contents=course[state.value-1][0]
-        input_for_prepared=QLineEdit(file_contents)
-        pagelayout.addWidget(input_for_prepared)
-        input_for_unprepared=QLineEdit()
-        pagelayout.addWidget(input_for_unprepared)
+        self.input_for_prepared=QLineEdit(file_contents)
+        pagelayout.addWidget(self.input_for_prepared)
+        self.input_for_unprepared=QLineEdit()
+        pagelayout.addWidget(self.input_for_unprepared)
+        btn=QPushButton("To end suffer")
+        btn.pressed.connect(self.activate_math)
+        pagelayout.addWidget(btn)
         self.setLayout(pagelayout)
-        index=0
-        bound=len(input_for_prepared.text())
-        while(len(input_for_unprepared.text())!=bound):
-            #with Listener(on_press = on_press,
-             # on_release = on_release) as listener:
-                  #   listener.join()
-            tmp_str=input_for_prepared.text()
-            str_preparation="\033[0;37;40m{tmp_str[0:index]}"
-            str_preparation+="\033[1;33;40m {tmp_str[index]}"
-            str_preparation+="\033[0;37;40m{tmp_str[index:bound]}"
-            input_for_prepared.setText(str_preparation)
+        self.input_for_unprepared.textChanged.connect(self.key_logger)
+        QLineEdit.styleSheet(qrc)
 
-            if(keys[index]!=tmp_str[index] and keys[index]!='a'):
-                mistakes+=1
+      def key_logger(self):
+          global mistakes
+          global keys
+          global index
+          global jndex
+          tmp_str=self.input_for_unprepared.text()
+          bound=len(tmp_str)
+          if(tmp_str[bound-1]!=Key.esc):
+              keys.append(tmp_str[bound-1])
+          fin_str=self.input_for_prepared.text()
+          if(keys[jndex]!=fin_str[index]):
+              mistakes+=1
+          else:
+              index+=1
+              jndex+=1
+      def activate_math(self):
+          print(mistakes)
             
 
 class MainWindow(QMainWindow):
