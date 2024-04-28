@@ -59,6 +59,10 @@ jndex=-1
 index_list=[]
 index_list.append(index)
 size=0
+symb_per_min=[]
+words_per_min=[]
+initial_time=0
+elapsed_timer_per_iter=0
 def playy(real_filename,f):
     playsound.playsound(real_filename)
     while(f>0):
@@ -133,6 +137,7 @@ class AnotherWindow2(QWidget):
         global course
         global mistakes
         global keys
+        global initial_time
         self.setWindowTitle("Tempts")  # <2>
         self.setMinimumWidth(400)
         self.setMinimumHeight(400)
@@ -159,6 +164,7 @@ class AnotherWindow2(QWidget):
         pagelayout.addWidget(btn)
         self.setLayout(pagelayout)
         self.input_for_unprepared.textChanged.connect(self.key_logger)
+        initial_time=time.time()
 
       def key_logger(self):
           global mistakes
@@ -166,12 +172,13 @@ class AnotherWindow2(QWidget):
           global index
           global jndex
           global size
-          global course_percentage
-          global custom_percentage
-          global state
-          global Text_variants
+          global elapsed_timer_per_iter
+          global symb_per_min
+          global initial_time
+          flag=False
           fin_str=self.input_for_prepared.toPlainText()
           tmp_str=self.input_for_unprepared.toPlainText()
+          elapsed_timer_per_iter=time.time()-initial_time-elapsed_timer_per_iter
           bound=len(tmp_str)
           if(bound!=0):
            keys.append(tmp_str[bound-1])
@@ -180,7 +187,19 @@ class AnotherWindow2(QWidget):
            if(bound>=size):
               if(keys[jndex]!=fin_str[index]): #добавить подсчет верных слов+подчеркивание символа(это напоследок)
                   mistakes+=1
+                  if(len(symb_per_min)==0):
+                       if(keys[jndex]!=' '):
+                        symb_per_min.append(elapsed_timer_per_iter)
+                        flag=True
+                  else:
+                      symb_per_min[len(symb_per_min)-1]+=elapsed_timer_per_iter
               else:
+                  if(not(flag)):
+                     if(keys[jndex]!=' '):
+                        symb_per_min.append(elapsed_timer_per_iter)
+                  else:
+                     symb_per_min[len(symb_per_min)-1]+=elapsed_timer_per_iter
+                     flag=False
                   index+=1
           elif(size!=0):
             keys.append(' ')
@@ -189,6 +208,12 @@ class AnotherWindow2(QWidget):
       def activate_math(self): #добавить матплотлиб
           global mistakes
           global keys
+          global words_per_min
+          global course_percentage
+          global custom_percentage
+          global state
+          global Text_variants
+          global symb_per_min
           tmp_str=self.input_for_prepared.toPlainText().split()
           tmp_words=""
           tmp_words=tmp_words.join(keys).split()
@@ -206,6 +231,14 @@ class AnotherWindow2(QWidget):
                    if(tmp_words[i]==tmp_str[j]):
                      n_word+=1
                      break
+          len_list=[len(s) for s in tmp_str]
+          j_index=0
+          for k in len_list:
+              fef=0
+              for f in range(j_index,j_index+k):
+                  fef+=symb_per_min[f]
+              words_per_min.append(60/fef)
+              j_index=k
           if(state==Text_variants.Unique):
               custom_percentage.append((n_word/len(tmp_words)*100))
           else:
