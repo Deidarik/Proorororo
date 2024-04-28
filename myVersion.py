@@ -7,8 +7,8 @@ import math
 import numpy as np
 import pynput
 from pynput.keyboard import Key, Listener
-from PyQt6.QtCore import Qt,QSize
-from PyQt6.QtGui import QAction, QIcon,QKeySequence,QPixmap
+from PyQt6.QtCore import Qt,QSize,QRegularExpression
+from PyQt6.QtGui import QAction, QIcon,QKeySequence,QSyntaxHighlighter, QTextCharFormat, QColor
 from enum import Enum
 from PyQt6.QtWidgets import (
     QApplication,
@@ -60,6 +60,40 @@ def playy(real_filename,f):
     while(f>0):
         time.sleep(1)
         f-=1
+
+class MyHighlighter(QSyntaxHighlighter):
+    def __init__(self, parent):
+        super().__init__(parent)
+        global index
+        self.highlight_format = QTextCharFormat()
+        self.rules = [] 
+        #self.highlight_format.setForeground(QColor("red"))
+        #self.rule = QRegularExpression(f"^{parent.text()[0:index+1]}")
+        print(self.rules)
+    def rehighlight(self, text):
+        global index
+        #ind = self.rule.indexIn(text)
+        ind = self.rules.indexIn(text)
+        self.setFormat(ind, index+1, self.highlight_format)
+def change_char_color(line_edit, index, foreground=None, background=None):
+    """ Изменяет цвет/фон символа в QLineEdit.
+  Args:
+        line_edit (QLineEdit): Виджет QLineEdit.
+        index (int): Индекс символа.
+        foreground (QColor, optional): Цвет переднего плана.
+        background (QColor, optional): Цвет заднего плана."""
+    line_edit.highlighter = MyHighlighter(line_edit)
+    #line_edit.setHighlight(highlighter)
+    fmt = QTextCharFormat()
+    if foreground:
+        fmt.setForeground(foreground)
+    if background:
+        fmt.setBackground(background)
+
+    # Создаем правило для конкретного символа
+    pattern = QRegularExpression(f"^{line_edit.text()[0:index+1]}")
+    line_edit.highlighter.rules = [pattern, fmt]
+    line_edit.highlighter.rehighlight(line_edit.highlighter,line_edit.text()) 
 
 class AnotherWindow1(QWidget):
       global percentage
@@ -121,39 +155,6 @@ class AnotherWindow1(QWidget):
         else:
             self.w.show()
 keys = []
-qrc = """
- QLineEdit{
-    background-color: #18181d;
-    color: red;
-    border-radius: 20%;
-    height: 2.6em;
-
-    font-weight: bold;
-    font-family: 'Times New Roman';
- }
-
- QLineEdit:hover{
-    background-color: #25252d;
- }
-
- QLineEdit:focus{
-    border: 2px solid #13c386; 
-    background-color: #25252d;
- }
-"""
-def on_press(key):
-    keys.append(key)
-    try:
-        print('alphanumeric key {0} pressed'.format(key.char))
-    except AttributeError:
-        print('special key {0} pressed'.format(key))
-
-def on_release(key):
-                     
-    print('{0} released'.format(key))
-    if key == Key.esc:
-        # Stop listener
-        return False
 class AnotherWindow2(QWidget):
       def __init__(self):
         super().__init__()
@@ -182,30 +183,35 @@ class AnotherWindow2(QWidget):
         self.input_for_prepared=QLineEdit(file_contents)
         pagelayout.addWidget(self.input_for_prepared)
         self.input_for_unprepared=QLineEdit()
+        #self.highlighter=MyHighlighter(self.input_for_prepared)
+        change_char_color(self.input_for_prepared, index, foreground=QColor("red"))
         pagelayout.addWidget(self.input_for_unprepared)
         btn=QPushButton("To end suffer")
         btn.pressed.connect(self.activate_math)
         pagelayout.addWidget(btn)
         self.setLayout(pagelayout)
         self.input_for_unprepared.textChanged.connect(self.key_logger)
-        QLineEdit.styleSheet(qrc)
 
       def key_logger(self):
           global mistakes
           global keys
           global index
           global jndex
+          fin_str=self.input_for_prepared.text()
+          if(index!=len(fin_str)):
+           #self.highlighter=MyHighlighter(self.input_for_prepared) #для метода первого нейроннкой
+           change_char_color(self.input_for_prepared, index+1, foreground=QColor("red"))
+          #fin_str=self.input_for_prepared.text()
           tmp_str=self.input_for_unprepared.text()
           bound=len(tmp_str)
           if(tmp_str[bound-1]!=Key.esc):
               keys.append(tmp_str[bound-1])
-          fin_str=self.input_for_prepared.text()
-          if(keys[jndex]!=fin_str[index]):
+          if(keys[jndex]!=fin_str[index]): #добавить подсчет верных слов+подчеркивание символа(это напоследок)
               mistakes+=1
           else:
               index+=1
               jndex+=1
-      def activate_math(self):
+      def activate_math(self): #добавить матплотлиб
           print(mistakes)
             
 
