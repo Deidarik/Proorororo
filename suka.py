@@ -95,7 +95,12 @@ class AnotherWindow1(QWidget):
         btn3=QPushButton("Lesson_third "+str(course_percentage[2])+" %")
         btn3.pressed.connect(self.activate_lesson_third)
         pagelayout.addWidget(btn3)
+        btn4=QPushButton("end")
+        btn4.pressed.connect(self.to_exit)
+        pagelayout.addWidget(btn4)
         self.setLayout(pagelayout)
+      def to_exit(self):
+         self.deleteLater()
 
       def activate_lesson_first(self):
         global course
@@ -159,6 +164,7 @@ class AnotherWindow2(QWidget):
             | QMessageBox.StandardButton.No,
             defaultButton=QMessageBox.StandardButton.Yes
             )
+            self.deleteLater() #hz
         else:
             file_contents=course[state.value-1][0]
         self.input_for_prepared=QTextEdit(file_contents)
@@ -253,11 +259,6 @@ class AnotherWindow2(QWidget):
               course_percentage[state.value-1]=(n_word/len(tmp_words)*100)
           n_words=len(words_per_min)
           n_symb=len(symb_per_min)
-          self.g = AnotherWindow3()
-          if self.g.isVisible():
-             self.g.hide()
-          else:
-            self.g.show()
           self.deleteLater()
           
             
@@ -353,8 +354,20 @@ class MainWindow(QMainWindow):
         btn2.pressed.connect(self.activate_tab_2)
         layout.addWidget(btn2)
         pagelayout.addLayout(layout)
-        btn3=QPushButton("Get stats")
-        btn3.pressed.connect(self.activate_tab_3)
+        stats_layout=QHBoxLayout()
+        sbtn=QPushButton("1lesson stats")
+        sbtn.pressed.connect(self.activate_stat)
+        stats_layout.addWidget(sbtn)
+        sbtn2=QPushButton("2 stats")
+        sbtn2.pressed.connect(self.activate_stat2)
+        stats_layout.addWidget(sbtn2)
+        sbtn3=QPushButton("3lesson stats")
+        sbtn3.pressed.connect(self.activate_stat3)
+        stats_layout.addWidget(sbtn3)
+        sbtnu=QPushButton("unique lesson stats")
+        sbtnu.pressed.connect(self.activate_statu)
+        stats_layout.addWidget(sbtnu)
+        pagelayout.addLayout(stats_layout)
         widget = QWidget()
         widget.setLayout(pagelayout)
         self.setCentralWidget(widget)
@@ -446,7 +459,50 @@ class MainWindow(QMainWindow):
         else:
             self.w.show()
 
-    def activate_tab_3(self):
+    def activate_stat(self):
+       global course_percentage
+       if(course_percentage[0]==0.0):
+         mes=QMessageBox.critical(
+            self,
+            "Stats not found",
+            "Go&study 1st lesson",
+            buttons=QMessageBox.StandardButton.Yes
+            | QMessageBox.StandardButton.No,
+            defaultButton=QMessageBox.StandardButton.Yes
+            )
+    def activate_stat2(self):
+       global course_percentage
+       if(course_percentage[1]==0.0):
+         mes=QMessageBox.critical(
+            self,
+            "Stats not found",
+            "Go&study 2nd lesson",
+            buttons=QMessageBox.StandardButton.Yes
+            | QMessageBox.StandardButton.No,
+            defaultButton=QMessageBox.StandardButton.Yes
+            )
+    def activate_stat3(self):
+       global course_percentage
+       if(course_percentage[2]==0.0):
+         mes=QMessageBox.critical(
+            self,
+            "Stats not found",
+            "Go&study 3rd lesson",
+            buttons=QMessageBox.StandardButton.Yes
+            | QMessageBox.StandardButton.No,
+            defaultButton=QMessageBox.StandardButton.Yes
+            )
+    def activate_statu(self):
+       global custom_percentage
+       if(len(custom_percentage)==0):
+          mes=QMessageBox.critical(
+            self,
+            "Stats not found",
+            "Go&study unique lesson",
+            buttons=QMessageBox.StandardButton.Yes
+            | QMessageBox.StandardButton.No,
+            defaultButton=QMessageBox.StandardButton.Yes
+            )
        
 app = QApplication(sys.argv)
 app.setStyle('Fusion')
