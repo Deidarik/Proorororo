@@ -56,7 +56,7 @@ course=np.array([
     ["фыва олдж фыва олдж фждылво фывждлоа фыжд ждфы пруфыыыыыыы"],
     ["чувак, ты так хорош, что я в твою честь назову страну, ей-богу"]
 ],
-dtype=(np.unicode_, 16),order='C')
+dtype=(np.unicode_, 58),order='C') #здесь число - количество символов юникода, что показаны будут
 mistakes=0
 index=0
 jndex=-1
@@ -70,6 +70,8 @@ n_words=0
 n_symb=0
 elapsed_timer_per_iter=0
 keys = []
+wtime=[]
+stime=[]
 def playy(real_filename,f):
     playsound.playsound(real_filename)
     while(f>0):
@@ -89,7 +91,7 @@ class AnotherWindow1(QWidget):
         btn=QPushButton("Lesson_first "+str(course_percentage[0])+" %")
         btn.pressed.connect(self.activate_lesson_first)
         pagelayout.addWidget(btn)
-        btn2=QPushButton("Lesson_first "+str(course_percentage[1])+" %")
+        btn2=QPushButton("Lesson_second "+str(course_percentage[1])+" %")
         btn2.pressed.connect(self.activate_lesson_second)
         pagelayout.addWidget(btn2)
         btn3=QPushButton("Lesson_third "+str(course_percentage[2])+" %")
@@ -131,11 +133,10 @@ class AnotherWindow1(QWidget):
         global course
         global percentage
         global file_contents
-        self.w = AnotherWindow2()
         global Text_variants
         global state
         state=Text_variants.Third
-        self.w.setInputMethodHints
+        self.w = AnotherWindow2()
         if self.w.isVisible():
             self.w.hide()
         else:
@@ -155,7 +156,7 @@ class AnotherWindow2(QWidget):
         self.setMaximumWidth(1000)
         self.setMaximumHeight(1000)
         pagelayout=QVBoxLayout()
-        if(state.value==5):
+        if(state.value==4):
             mes=QMessageBox.information(
             self,
             "Warning",
@@ -165,8 +166,8 @@ class AnotherWindow2(QWidget):
             defaultButton=QMessageBox.StandardButton.Yes
             )
             self.deleteLater() #hz
-        else:
-            file_contents=course[state.value-1][0]
+        elif(state.value!=5):
+            file_contents=course[state.value-1][0]  
         self.input_for_prepared=QTextEdit(file_contents)
         pagelayout.addWidget(self.input_for_prepared)
         self.input_for_unprepared=QTextEdit()
@@ -228,6 +229,8 @@ class AnotherWindow2(QWidget):
           global symb_per_min
           global n_words
           global n_symb
+          global wtime
+          global stime
           tmp_str=self.input_for_prepared.toPlainText().split()
           tmp_words=""
           n_word=0
@@ -251,19 +254,23 @@ class AnotherWindow2(QWidget):
               fef=0
               for f in range(j_index,j_index+k):
                   fef+=symb_per_min[f]
+              wtime.append(fef)
               words_per_min.append(60/fef)
               j_index=k
           if(state==Text_variants.Unique):
               custom_percentage.append((n_word/len(tmp_words)*100))
           else:
               course_percentage[state.value-1]=(n_word/len(tmp_words)*100)
+          for i in range(0,len(symb_per_min)):
+             stime.append(symb_per_min[i])
+             symb_per_min[i]=60/symb_per_min[i]
           n_words=len(words_per_min)
           n_symb=len(symb_per_min)
           self.deleteLater()
           
             
 class MplCanvas(FigureCanvasQTAgg):
-  def __init__(self, parent=None, width=5, height=4, dpi=100):
+  def __init__(self, parent=None, width=8, height=8, dpi=100):
    fig = Figure(figsize=(width, height), dpi=dpi)
    self.axes = fig.add_subplot(111)
    super().__init__(fig)
@@ -275,10 +282,16 @@ class AnotherWindow3(QWidget):
         global symb_per_min
         global n_words
         global n_symb
-        sc = MplCanvas(self, width=5, height=4, dpi=100)
-        sc.axes.plot(words_per_min, np.arange(0, n_words, 1))
-        sc2 = MplCanvas(self, width=5, height=4, dpi=100)
-        sc2.axes.plot(symb_per_min, np.arange(0, n_symb, 1))
+        sc = MplCanvas(self, width= 8, height=8, dpi=100)
+        sc.axes.plot(np.arange(0, n_words, 1), words_per_min)
+        #legend1= sc.figure.legend("Words per minute", 1,1)
+        sc.axes.set_xlabel("Time in sec")
+        sc.axes.set_ylabel("Words per minute")
+        sc2 = MplCanvas(self, width=8, height=8, dpi=100)
+        sc2.axes.plot(np.arange(0, n_symb, 1), symb_per_min)
+        sc2.axes.set_xlabel("Time in sec")
+        sc2.axes.set_ylabel("Symbols per minute")
+        #legend2=sc2.figure.legend("Symbols per minute")
   # Create toolbar, passing canvas as first parameter, parent(self, the MainWindow) as second.
         toolbar = NavigationToolbar(sc,sc2, self)
         layout = QVBoxLayout()
@@ -286,10 +299,7 @@ class AnotherWindow3(QWidget):
         layout.addWidget(sc)
         layout.addWidget(sc2)
   # Create a placeholder widget to hold our toolbar and canvas.
-        widget = QWidget()
-        widget.setLayout(layout)
-        self.setCentralWidget(widget)
-        self.show()
+        self.setLayout(layout)
 
 
 class MainWindow(QMainWindow):
@@ -373,6 +383,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(widget)
     def onMyToolBarButton1Click(self):
         global file_contents
+        global state
         caption = ""  # Empty uses default caption.
         initial_dir = ""  # Empty uses current folder.
         initial_filter = FILE_FILTERS[3]  # Select one from the list.
@@ -393,6 +404,7 @@ class MainWindow(QMainWindow):
          if filename:
             with codecs.open(filename, "rb","utf-8") as f:
                 file_contents = f.read()
+                state=Text_variants.Unique
                 print(file_contents)
         if(selected_filter==FILE_FILTERS[4]):
            if filename:
@@ -451,7 +463,6 @@ class MainWindow(QMainWindow):
     def activate_tab_2(self): #если он хочет свое загрузить
         global Text_variants
         global state
-        state=Text_variants.Unique
         self.w = AnotherWindow2()
         if self.w.isVisible():
             self.w.hide()
@@ -470,6 +481,12 @@ class MainWindow(QMainWindow):
             | QMessageBox.StandardButton.No,
             defaultButton=QMessageBox.StandardButton.Yes
             )
+       else:
+          self.g = AnotherWindow3()
+          if self.g.isVisible():
+             self.g.hide()
+          else:
+             self.g.show()
     def activate_stat2(self):
        global course_percentage
        if(course_percentage[1]==0.0):
@@ -481,6 +498,12 @@ class MainWindow(QMainWindow):
             | QMessageBox.StandardButton.No,
             defaultButton=QMessageBox.StandardButton.Yes
             )
+       else:
+          self.g = AnotherWindow3()
+          if self.g.isVisible():
+             self.g.hide()
+          else:
+             self.g.show()
     def activate_stat3(self):
        global course_percentage
        if(course_percentage[2]==0.0):
@@ -492,6 +515,12 @@ class MainWindow(QMainWindow):
             | QMessageBox.StandardButton.No,
             defaultButton=QMessageBox.StandardButton.Yes
             )
+       else:
+          self.g = AnotherWindow3()
+          if self.g.isVisible():
+             self.g.hide()
+          else:
+             self.g.show()
     def activate_statu(self):
        global custom_percentage
        if(len(custom_percentage)==0):
@@ -503,7 +532,12 @@ class MainWindow(QMainWindow):
             | QMessageBox.StandardButton.No,
             defaultButton=QMessageBox.StandardButton.Yes
             )
-       
+       else:
+          self.g = AnotherWindow3()
+          if self.g.isVisible():
+             self.g.hide()
+          else:
+             self.g.show()
 app = QApplication(sys.argv)
 app.setStyle('Fusion')
 window = MainWindow()
