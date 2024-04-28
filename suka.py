@@ -20,7 +20,8 @@ from PyQt6.QtWidgets import (
     QPushButton,
     QVBoxLayout,
     QWidget,
-    QLineEdit
+    QLineEdit,
+    QTextEdit
 )
 import playsound
 from threading import Thread
@@ -41,7 +42,8 @@ FILE_FILTERS = [
 file_contents=""#строка, куда считывается текст
 real_filename="er.png"
 basedir = os.path.dirname(__file__) #механизм, по которому открытие файлов
-percentage=[0.0,0.0,0.0]
+course_percentage=[0.0,0.0,0.0]
+custom_percentage=[]
 Text_variants=Enum('Lesson',['First','Second','Third','No','Unique'])
 state=Text_variants.No
 #типо курсы, индекс массива+1=соответсвующий урок
@@ -53,9 +55,10 @@ course=np.array([
 dtype=(np.unicode_, 16),order='C')
 mistakes=0
 index=0
-jndex=0
+jndex=-1
 index_list=[]
 index_list.append(index)
+size=0
 def playy(real_filename,f):
     playsound.playsound(real_filename)
     while(f>0):
@@ -147,9 +150,9 @@ class AnotherWindow2(QWidget):
             )
         else:
             file_contents=course[state.value-1][0]
-        self.input_for_prepared=QLineEdit(file_contents)
+        self.input_for_prepared=QTextEdit(file_contents)
         pagelayout.addWidget(self.input_for_prepared)
-        self.input_for_unprepared=QLineEdit()
+        self.input_for_unprepared=QTextEdit()
         pagelayout.addWidget(self.input_for_unprepared)
         btn=QPushButton("To end suffer")
         btn.pressed.connect(self.activate_math)
@@ -162,20 +165,52 @@ class AnotherWindow2(QWidget):
           global keys
           global index
           global jndex
-          fin_str=self.input_for_prepared.text()
-          #if(index!=len(fin_str)):
-          self.input_for_unprepared.setStyleSheet("QLineEdit" "{" "background : Gold; selection-background-color: rgb(233, 99, 0);"  "}")
-          tmp_str=self.input_for_unprepared.text()
+          global size
+          global course_percentage
+          global custom_percentage
+          global state
+          global Text_variants
+          fin_str=self.input_for_prepared.toPlainText()
+          tmp_str=self.input_for_unprepared.toPlainText()
           bound=len(tmp_str)
-          if(tmp_str[bound-1]!=Key.esc):
-              keys.append(tmp_str[bound-1])
-          if(keys[jndex]!=fin_str[index]): #добавить подсчет верных слов+подчеркивание символа(это напоследок)
-              mistakes+=1
-          else:
-              index+=1
-              jndex+=1
+          if(bound!=0):
+           keys.append(tmp_str[bound-1])
+           jndex+=1
+           if bound==1:size=1
+           if(bound>=size):
+              if(keys[jndex]!=fin_str[index]): #добавить подсчет верных слов+подчеркивание символа(это напоследок)
+                  mistakes+=1
+              else:
+                  index+=1
+          elif(size!=0):
+            keys.append(' ')
+            jndex+=1   
+          size=bound
       def activate_math(self): #добавить матплотлиб
-          print(mistakes)
+          global mistakes
+          global keys
+          tmp_str=self.input_for_prepared.toPlainText().split()
+          tmp_words=""
+          tmp_words=tmp_words.join(keys).split()
+          n_word=0
+          for i in range(0,len( tmp_str)):
+              for j in range(0,len(tmp_str)):
+                  if(tmp_words[i]==tmp_str[j]):
+                     n_word+=1
+                     break
+          w_border=0
+          if(len(tmp_words)>len(tmp_str)):
+              w_border=len(tmp_words)-len(tmp_str)
+              for i in range(len( tmp_str),len(tmp_words)):
+                 for j in range(len(tmp_str)-w_border,len(tmp_str)):
+                   if(tmp_words[i]==tmp_str[j]):
+                     n_word+=1
+                     break
+          if(state==Text_variants.Unique):
+              custom_percentage.append((n_word/len(tmp_words)*100))
+          else:
+              course_percentage[state.value-1]=(n_word/len(tmp_words)*100)
+          
             
 
 class MainWindow(QMainWindow):
